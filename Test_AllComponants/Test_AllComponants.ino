@@ -6,8 +6,42 @@ orange 0
 jaune 1
 vert 2
 bleu 3
-
 */
+
+// telemetre
+int ArG; // 0 quand leds allumées == obstacle détecté
+int ArD;
+int pin_ArG = 4;
+int pin_ArD = 5;
+
+bool isObstacleArG = false;
+bool isObstacleArD = false;
+int cptObstacleArG = 0;
+
+void obstacleArriereGauche(){
+  //Serial.println("obstacle arriere gauche detecté");
+  isObstacleArG++;
+  if(cptObstacleArG > 1000){
+    isObstacleArG = true;
+  }
+  //arret();
+}
+
+void obstacleArriereDroit(){
+  //Serial.println("obstacle arriere droit detecté");
+  isObstacleArD = true;
+  //arret();
+}
+
+void NoObstacleArriereGauche(){
+  isObstacleArG = 0;
+  isObstacleArG = false;
+}
+
+void NoObstacleArriereDroit(){
+  isObstacleArD = false;
+}
+
 // lien pour telemetres IR https://www.instructables.com/How-to-Use-the-Sharp-IR-Sensor-GP2Y0A41SK0F-Arduin/
 // Telemetres_IR_AV droite et gauche
 SharpIR telAvG(SharpIR::GP2Y0A21YK0F, A0);
@@ -16,10 +50,10 @@ int Dist_AvG;
 int Dist_AvD;
 
 // Telemetres_IR_AR droite et gauche
-SharpIR telArG(SharpIR::GP2Y0A21YK0F, A2);
+/*SharpIR telArG(SharpIR::GP2Y0A21YK0F, A2);
 SharpIR telArD(SharpIR::GP2Y0A21YK0F, A3);
 int Dist_ArG;
-int Dist_ArD;
+int Dist_ArD;*/
 
 //servo positionné sur la gauche du robot
 Servo myservo;
@@ -61,13 +95,40 @@ void setup() {
 
   analogWrite(ENA,0);
   analogWrite(ENB,0);
+
+  attachInterrupt(digitalPinToInterrupt(18), obstacleArriereGauche, FALLING);
+  //attachInterrupt(digitalPinToInterrupt(19), obstacleArriereDroit, FALLING);
+
+  //attachInterrupt(digitalPinToInterrupt(24), NoObstacleArriereGauche, RISING);
+  //attachInterrupt(digitalPinToInterrupt(20), NoObstacleArriereDroit, RISING);
 }
 
 void loop() {
-  testTelemetres();
+  /*testTelemetres();
   testMoteurs();
   testServo();
-  delay(3000);
+  delay(3000);*/
+
+  if(!isObstacleArG){
+    moveBackwardLeft();
+    //Serial.println("dans le 1");
+  }
+  else{
+    arretLeft();
+    //Serial.println("dans le 2");
+  }
+
+  /*
+  if(!isObstacleArD){
+    moveBackwardRight();
+    //Serial.println("dans le 3");
+  }
+  else{
+    arretRight();
+    //Serial.println("dans le 4");
+  }
+  */
+ 
 }
 
 void testServo(){
@@ -101,7 +162,7 @@ void testTelemetres()
   Serial.println(Dist_AvD);
   delay(1000);
   
-  Dist_ArG = telArG.getDistance();
+  /*Dist_ArG = telArG.getDistance();
   Serial.print("Arriere gauche : ");
   Serial.println(Dist_ArG);
   delay(1000);
@@ -109,16 +170,10 @@ void testTelemetres()
   Dist_ArD = telArD.getDistance();
   Serial.print("Arriere droit : ");
   Serial.println(Dist_ArD);
-  delay(1000);
+  delay(1000);*/
 
   Serial.println("");
 }
-
-
-
-
-
-
 
 
 
@@ -134,11 +189,21 @@ void arret()
         digitalWrite(IN4, HIGH);
 }
 
+void arretLeft(){
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, HIGH);
+}
+
+void arretRight(){
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, HIGH);
+}
+
 void Forward()
 {
-        digitalWrite(IN1,LOW);
+        digitalWrite(IN1, LOW);
         digitalWrite(IN2, HIGH);
-        digitalWrite(IN3,LOW);
+        digitalWrite(IN3, LOW);
         digitalWrite(IN4, HIGH);
         analogWrite(ENA,vitesseENA);
         analogWrite(ENB,vitesseENB);
@@ -151,6 +216,18 @@ void Backward()
         digitalWrite(IN3,HIGH);
         digitalWrite(IN4, LOW);
         analogWrite(ENA,vitesseENA);
+        analogWrite(ENB,vitesseENB);
+}
+
+void moveBackwardLeft(){
+        digitalWrite(IN1,HIGH);
+        digitalWrite(IN2, LOW);
+        analogWrite(ENA,vitesseENA);
+}
+
+void moveBackwardRight(){
+        digitalWrite(IN3,HIGH);
+        digitalWrite(IN4,LOW);
         analogWrite(ENB,vitesseENB);
 }
 
