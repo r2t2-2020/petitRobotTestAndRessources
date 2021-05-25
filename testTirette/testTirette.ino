@@ -10,12 +10,12 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(pin_tirette, INPUT_PULLUP);
   
-  MsTimer2::set(10000, flash); // 500ms period
+  MsTimer2::set(100000, flash); // 500ms period
 }
 
 
 void loop() {
-  while(digitalRead(pin_tirette));
+  while(digitalRead(pin_tirette) && !isTimerSet);
   if(!isTimerSet){
     MsTimer2::start();
     isTimerSet = true;
