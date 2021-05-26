@@ -13,11 +13,17 @@
 void setup() {
     Serial.begin(9600);
 
+    //interruptions
+    *digitalPinToPCMSK(51) |= (1<<digitalPinToPCMSKbit(51));
+    *digitalPinToPCICR(51) |= (1<<digitalPinToPCICRbit(51));
+
+    //attachInterrupt(digitalPinToInterrupt(51), testServo, CHANGE);
+
     pinMode(pin_tirette, INPUT_PULLUP);
     MsTimer2::set(50000, finRun);
 
     Myservo.attach(pin_servo);
-
+    pinMode(5, INPUT_PULLUP);
     for(int i =8;i<14;i++)
     {
         pinMode(i,OUTPUT); // PINs en sortie
