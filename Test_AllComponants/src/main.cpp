@@ -8,12 +8,13 @@
 #include "TelemetresPerso.h"
 #include "EncoderPerso.h"
 #include "TirettePerso.h"
+#include "Strategies.h"
 
 void setup() {
     Serial.begin(9600);
 
     pinMode(pin_tirette, INPUT_PULLUP);
-    MsTimer2::set(10000, finRun);
+    MsTimer2::set(50000, finRun);
 
     Myservo.attach(pin_servo);
 
@@ -27,12 +28,13 @@ void setup() {
     digitalWrite(IN3,0);
     digitalWrite(IN4,0);
 
-    analogWrite(ENA,0);
+    analogWrite(ENA,0); // faire des rampes
     analogWrite(ENB,0);
 
 }
 
 void loop() {
+
     while(digitalRead(pin_tirette) && !isTimerSet);
     if(!isTimerSet){
         MsTimer2::start();
@@ -42,5 +44,8 @@ void loop() {
     //Serial.println("Running");
     delay(500);
 
-    testServo();
+    while(1){
+        pente();
+    }
 }
+

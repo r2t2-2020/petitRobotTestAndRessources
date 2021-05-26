@@ -1,6 +1,7 @@
 //
 // Created by gozlanp on 26/05/2021.
 //
+#include <MotorsPerso.h>
 
 #ifndef TEST_ALLCOMPONANTS_TELEMETRESPERSO_H
 #define TEST_ALLCOMPONANTS_TELEMETRESPERSO_H
@@ -26,6 +27,16 @@ SharpIR telArD(SharpIR::GP2Y0A21YK0F, A3);
 int Dist_ArG;
 int Dist_ArD;
 
+void testTelemetres2()
+{
+    while(Dist_AvD && Dist_AvG >= 12){
+        Forward();
+        delay(500);
+        Dist_AvD = telAvD.getDistance();
+        Dist_AvG = telAvG.getDistance();
+    }
+    arret();
+}
 void testTelemetres()
 {
     Dist_AvG = telAvG.getDistance();
