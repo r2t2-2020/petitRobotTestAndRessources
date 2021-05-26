@@ -26,6 +26,7 @@ void flash()
 
 void setup()
 {
+    Serial.begin(9600);
     pinMode(led_pin, OUTPUT);
 
     MsTimer2::set(1000, flash); // 500ms period
@@ -34,4 +35,6 @@ void setup()
 
 void loop()
 {
+    Serial.println("Hello");
+    delay(1000);
 }
