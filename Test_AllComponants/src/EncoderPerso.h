@@ -41,6 +41,21 @@ void Forward(long nbImpulsion)
     digitalWrite(IN4, HIGH);
     analogWrite(ENA,vitesseENA);
     analogWrite(ENB,vitesseENB);
+    /*while(encoderLeft.read() && encoderRight.read() < nbImpulsion){
+        if(encoderLeft.read() > encoderRight.read()){
+            while(encoderLeft.read() > encoderRight.read()) {
+                stopLeft();
+            }
+            Forward(nbImpulsion - encoderRight.read());
+        }
+        if(encoderLeft.read() < encoderRight.read()){
+            while(encoderLeft.read() < encoderRight.read()) {
+                stopRight();
+            }
+            Forward(nbImpulsion - encoderRight.read());
+        }
+
+    }*/
 }
 
 /*#include <Arduino.h>

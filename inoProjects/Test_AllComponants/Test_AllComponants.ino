@@ -1,7 +1,7 @@
 #include <Servo.h>
 #include <SharpIR.h>
 #include <MsTimer2.h>
-
+#include <Encoder.h>
 /*
 orange 0
 jaune 1
@@ -138,7 +138,7 @@ void setup() {
   Serial.begin(9600);
 
   pinMode(pin_tirette, INPUT_PULLUP);
-  MsTimer2::set(10000, finRun);
+  MsTimer2::set(20000, finRun);
    
   myservo.attach(pin_servo);
   
@@ -172,7 +172,19 @@ void loop() {
   //Serial.println("Running");
   delay(500);
 
+  Dist_AvG = telAvG.read();
+  Dist_AvD = telAvD.read();
+  
+  while(Dist_AvD > 10 && Dist_AvG > 10){
+    myservo.write(position);
+    Forward();
 
+    Dist_AvG = telAvG.read();
+    Dist_AvD = telAvD.read();
+  }
+  
+
+  
 
   
   //testServo();
