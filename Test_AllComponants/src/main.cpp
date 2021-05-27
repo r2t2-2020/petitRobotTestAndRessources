@@ -14,8 +14,11 @@ void setup() {
     Serial.begin(9600);
 
     //interruptions
-    *digitalPinToPCMSK(51) |= (1<<digitalPinToPCMSKbit(51));
-    *digitalPinToPCICR(51) |= (1<<digitalPinToPCICRbit(51));
+    pinMode(13, INPUT_PULLUP); //_PULLUP
+    pinMode(53, INPUT_PULLUP);
+    PCICR =1;
+    PCMSK0 = 0b10000001; // masque pour 0 et 7 eme bits, permet de les activer en interruption
+    sei();
 
     //attachInterrupt(digitalPinToInterrupt(51), testServo, CHANGE);
 
