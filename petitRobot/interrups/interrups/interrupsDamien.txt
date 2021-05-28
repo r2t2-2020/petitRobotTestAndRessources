@@ -1,0 +1,44 @@
+On configure les pins digitaux que l'on souhaite utiliser en interruption:
+pinMode(13, INPUT_PULLUP); 
+pinMode(53, INPUT_PULLUP);
+
+
+On active dans le registre PCICR le groupe de pin que l'on souhaite mettre en interruption,
+il y en a 3 (2,1,0):
+ici 1 équivaut à mettre le premier bit à 1, donc on active le groupe 0
+PCICR = 1; (== 0b00000001)
+
+On active les pins que l'on veut utiliser, il y en a 8 par groupe
+On active ici le 1er et le 8eme du groupe 0 (== 1 sur le 7 eme et le premier bit).
+PCMSK0 = 0b10000001;
+
+Active les interruptions:
+sei();
+
+Routine/fonction/evenement qui se déclenche quand il se passe un changement d'état sur un des pins en interruption
+On met en argument le vecteur du groupe que l'on a activé dans le registre PCICR, ici le premier groupe == 0
+ISR(PCINT0_vect){  
+    if(digitalRead(53) == 0){ 
+      //instruction0
+    }
+    if(digitalRead(13) == 0){
+      //instruction1
+    }
+}
+
+On cherche à différencier dans les if, quel pin à déclencher l'interruption
+digitalRead(53)==0 permet de rentrer dans le if que si le bon pin est dans le bon état, ici on veut du 0 (= obstacle détecté)
+if(digitalRead(53) == 0)
+
+
+Pour ne pas que les interruptions se déclenchent à la suite,
+il faut mettre des booléens qui vérifieront si l'interruption à deja eu lieu
+
+les pins passent à 0 quand il y à un obstacle, ils sont toujours à 1 sinon.
+
+
+
+
+
+au cas où:
+(PINB & 1<<PORTB0) 
