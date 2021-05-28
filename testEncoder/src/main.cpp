@@ -3,7 +3,7 @@
 
 /* Carte Driver ..*/
 /* Moteur Droite*/
-const byte ENA=10;// PWM
+const byte ENA=7;// PWM
 const byte IN1=8;// Dir   1A
 const byte IN2=9; // 2A
 
