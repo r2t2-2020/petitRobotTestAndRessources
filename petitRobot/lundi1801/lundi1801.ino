@@ -6,14 +6,17 @@ SharpIR telAv(SharpIR::GP2Y0A21YK0F, A1);
 int Dist_AV;
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
+   pinMode(2, INPUT);
 }
 
 void loop() 
 {  
-  Dist_AV = telAv.getDistance();
+  Serial.println(digitalRead(2));
+  delay(500);
+  /*Dist_AV = telAv.getDistance();
   Serial.println(Dist_AV);
-  delay(100);
+  delay(100);*/
 }
 
 /*#define sensor A1 // Sharp IR GP2Y0A41SK0F (4-30cm, analog)

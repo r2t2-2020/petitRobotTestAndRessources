@@ -1,13 +1,17 @@
 #include <SimpleTimer.h>
+#include <MsTimer2.h>
 
 SimpleTimer timer;                 // Timer pour échantillonnage
+
+//timer
+bool isTimerSet = false;
 
 unsigned int tick_codeuse_G = 0;     // Compteur de tick de la codeuse du moteur Gauche
 unsigned int tick_codeuse_D = 0;     // Compteur de tick de la codeuse du moteur Droit
 int vitMoteur_G = 0;                 // Commande du moteur Gauche
 int vitMoteur_D = 0;                 // Commande du moteur Droite
 
-const int frequence_echantillonnage = 20; // Fréquence d'exécution de l'asservissement
+const int frequence_echantillonnage = 100; // Fréquence d'exécution de l'asservissement
 const int rapport_reducteur = 30;          // Rapport nombre de tours de l'arbre moteur et de la roue
 const int tick_par_tour_codeuse = 32;  //64 tick sur deux capteurs hall, ici un seul capteur
 
@@ -37,13 +41,18 @@ float somme_erreur_D = 0;
 //const float kp = 1000; // Coefficient proportionnel (choisis par essais successifs)
 const float kpG = 1000;  // Coefficient proportionnel du moteur gauche
 const float kpD = 1000;  // Coefficient proportionnel du moteur droit
-const float ki = 20; //5;   // Coefficient intégrateur
-const float kd = 0; //100; // Coefficient dérivateur
+const float kiG = 20; //5;   // Coefficient intégrateur
+const float kiD = 20;
+const float kdG = 0; //100; // Coefficient dérivateur
+const float kdD = 0;
 
 /* Routine d'initialisation */
 void setup()
 {
     Serial.begin(115200);         // Initialisation port COM
+
+    MsTimer2::set(3500, finRun);
+    
     pinMode(pinPowerG, OUTPUT);    // Sorties commande moteur
     pinMode( motG_IN1, OUTPUT );
     pinMode( motG_IN2, OUTPUT );
@@ -64,12 +73,16 @@ void setup()
 /* Fonction principale */
 void loop()
 {
-   
+   if(!isTimerSet){
+        MsTimer2::start();
+        isTimerSet = true;
+    }
+    
     timer.run();  //on fait tourner l'horloge
-    delay(50);
-    if(consigne_moteur_D < 4 && consigne_moteur_G < 4){
-      consigne_moteur_D += 0.02;
-      consigne_moteur_G += 0.02;
+    delay(10);
+    if(consigne_moteur_D < 3 && consigne_moteur_G < 3){
+      consigne_moteur_D += 0.025;
+      consigne_moteur_G += 0.025;
     }
 }
 
@@ -114,8 +127,8 @@ void asservissement()
     tick_codeuse_D = 0;
 
     // P : calcul de la commande
-    vitMoteur_G = kpG*erreur_G + ki*somme_erreur_G + kd*delta_erreur_G;  //somme des trois erreur_Gs
-    vitMoteur_D = kpD*erreur_D + ki*somme_erreur_D + kd*delta_erreur_D;  //somme des trois erreur_Gs
+    vitMoteur_G = kpG*erreur_G + kiG*somme_erreur_G + kdG*delta_erreur_G;  //somme des trois erreur_Gs
+    vitMoteur_D = kpD*erreur_D + kiD*somme_erreur_D + kdD*delta_erreur_D;  //somme des trois erreur_Gs
 
     // Normalisation et contrôle du moteur de Gauche
     if ( vitMoteur_G > 255 )
@@ -164,4 +177,13 @@ void TournerDroite_D( int powerRate )
     digitalWrite(motD_IN3, HIGH);
     digitalWrite(motD_IN4, LOW);
     analogWrite(pinPowerD, powerRate);
+}
+
+void finRun()
+{
+    digitalWrite(motG_IN1, HIGH);
+    digitalWrite(motG_IN2, HIGH);
+    digitalWrite(motD_IN3, HIGH);
+    digitalWrite(motD_IN4, HIGH);
+    while(1);
 }
