@@ -78,12 +78,23 @@ void loop()
         isTimerSet = true;
     }
     
-    timer.run();  //on fait tourner l'horloge
-    delay(10);
-    if(consigne_moteur_D < 3 && consigne_moteur_G < 3){
-      consigne_moteur_D += 0.025;
-      consigne_moteur_G += 0.025;
-    }
+    //timer.run();  //on fait tourner l'horloge
+    //delay(10);
+    do{
+      consigne_moteur_D += 0.0025;
+      consigne_moteur_G += 0.0025;
+      timer.run();  //on fait tourner l'horloge
+      delay(10);
+    }while(consigne_moteur_D < 3 && consigne_moteur_G < 3);
+
+    /*
+    do{
+      consigne_moteur_D -= 0.0025;
+      consigne_moteur_G -= 0.0025;
+      timer.run();  //on fait tourner l'horloge
+      delay(10);
+    }while(consigne_moteur_D >= 0 && consigne_moteur_G >= 0);
+    */
 }
 
 //---- Interruption sur tick de la codeuse du moteur Gauche
