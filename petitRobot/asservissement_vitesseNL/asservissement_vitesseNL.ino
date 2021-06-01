@@ -23,9 +23,9 @@ const int pinPowerD  = 13;    // Commande de vitesse moteur, Output Enabled1
 
 //consigne en tour/s
 //const float consigne_moteur_G = 0;//2;  // Consigne nombre de tours de roue par seconde moteur Gauche
-float consigne_moteur_G = 2;
+float consigne_moteur_G = 1;
 //const float consigne_moteur_D = 0;//2;  // Consigne nombre de tours de roue par seconde moteur Droit
-float consigne_moteur_D = 2;
+float consigne_moteur_D = 1;
 
 // init calculs asservissement PID
 float erreur_G_precedente = consigne_moteur_G; // (en tour/s)
@@ -34,13 +34,13 @@ float erreur_D_precedente = consigne_moteur_D; // (en tour/s)
 float somme_erreur_D = 0;
 
 //Definition des constantes du correcteur PID
-const float kpG = 1100; // Coefficient proportionnel (choisis par essais successifs)
-const float kiG = 20; //5;   // Coefficient intégrateur
-const float kdG = 0; //100; // Coefficient dérivateur
+const float kpG = 200; //350; //1100; // Coefficient proportionnel (choisis par essais successifs)
+const float kiG = 0; //5;   // Coefficient intégrateur
+const float kdG = 50; //100; // Coefficient dérivateur
 
-const float kpD = 1000; // Coefficient proportionnel (choisis par essais successifs)
-const float kiD = 20;
-const float kdD = 0;
+const float kpD = 270;//350; //1000; // Coefficient proportionnel (choisis par essais successifs)
+const float kiD = 0;
+const float kdD = 50;
 
 /* Routine d'initialisation */
 void setup()
