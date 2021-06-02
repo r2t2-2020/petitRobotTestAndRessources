@@ -51,7 +51,7 @@ void setup()
 {
     Serial.begin(115200);         // Initialisation port COM
 
-    MsTimer2::set(3500, finRun);
+    MsTimer2::set(7000, finRun);
     
     pinMode(pinPowerG, OUTPUT);    // Sorties commande moteur
     pinMode( motG_IN1, OUTPUT );
@@ -69,6 +69,8 @@ void setup()
     // Interruption pour calcul du PID et asservissement appelee toutes les 10ms
     timer.setInterval(1000/frequence_echantillonnage, asservissement);
 }
+bool sens = true;
+float tick = 0.005;
 
 /* Fonction principale */
 void loop()
@@ -78,23 +80,25 @@ void loop()
         isTimerSet = true;
     }
     
-    //timer.run();  //on fait tourner l'horloge
-    //delay(10);
+    timer.run();  //on fait tourner l'horloge
+    delay(10);
+    
     do{
-      consigne_moteur_D += 0.0025;
-      consigne_moteur_G += 0.0025;
-      timer.run();  //on fait tourner l'horloge
-      delay(10);
-    }while(consigne_moteur_D < 3 && consigne_moteur_G < 3);
+      consigne_moteur_D += tick;
+      consigne_moteur_G += tick;
+      if(consigne_moteur_D >= 3 && consigne_moteur_G >= 3){
+        sens = false;
+      }
+    }while(consigne_moteur_D < 3 && consigne_moteur_G < 3 && sens == true);
 
-    /*
     do{
-      consigne_moteur_D -= 0.0025;
-      consigne_moteur_G -= 0.0025;
-      timer.run();  //on fait tourner l'horloge
-      delay(10);
-    }while(consigne_moteur_D >= 0 && consigne_moteur_G >= 0);
-    */
+      consigne_moteur_D -= tick;
+      consigne_moteur_G -= tick;
+      if(consigne_moteur_D <= 0 && consigne_moteur_G <= 0){
+        sens = true;
+      }
+    }while(consigne_moteur_D > 0 && consigne_moteur_G > 0 && sens == false);
+    
 }
 
 //---- Interruption sur tick de la codeuse du moteur Gauche
