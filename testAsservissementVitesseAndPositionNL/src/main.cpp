@@ -1,10 +1,12 @@
 #include <Arduino.h>
 #include <SimpleTimer.h>
+#include <Servo.h>
+#include <ServoPerso.h>
 
 SimpleTimer timer;                  // Timer pour Ã©chantillonnage
 volatile int timerNum; // Numéro du timer pour pouvoir l'arrêter
 
-volatile unsigned int tick_codeuse_pos_G = 0;
+volatile unsigned int tick_codeuse_pos_G = 0; // unsigned int
 volatile unsigned int tick_codeuse_pos_D = 0;
 unsigned int tick_codeuse_G = 0;     // Compteur de tick de la codeuse du moteur Gauche
 unsigned int tick_codeuse_D = 0;     // Compteur de tick de la codeuse du moteur Droit
@@ -29,8 +31,8 @@ volatile bool motorStopped_D = false;
 
 //consigne en tour/s
 //const float consigne_moteur_G = 0;//2;  // Consigne nombre de tours de roue par seconde moteur Gauche
-float consigne_moteur_G = 2;//const float consigne_moteur_D = 0;//2;  // Consigne nombre de tours de roue par seconde moteur Droit
-float consigne_moteur_D = 2;
+float consigne_moteur_G = 0;//const float consigne_moteur_D = 0;//2;  // Consigne nombre de tours de roue par seconde moteur Droit
+float consigne_moteur_D = 0;
 
 volatile unsigned int consigneNbTick_G = 0;
 volatile unsigned int consigneNbTick_D = 0;
@@ -43,12 +45,12 @@ float somme_erreur_D = 0;
 
 //Definition des constantes du correcteur PID
 const float kpG = 200; //350; //1100; // Coefficient proportionnel (choisis par essais successifs)
-const float kiG = 0; //5;   // Coefficient intÃ©grateur
-const float kdG = 50; //100; // Coefficient dÃ©rivateur
+const float kiG = 0.2; //5;   // Coefficient intÃ©grateur
+const float kdG = 200;//50; //100; // Coefficient dÃ©rivateur
 
 const float kpD = 270;//350; //1000; // Coefficient proportionnel (choisis par essais successifs)
-const float kiD = 0;
-const float kdD = 50;
+const float kiD = 0.6;
+const float kdD = 200;
 
 //---- fonction pour faire tourner le moteur dans un sens (a droite)
 void TournerDroite_G( int powerRate ) {
@@ -64,14 +66,14 @@ void TournerDroite_D( int powerRate ) {
 }
 
 void motorBreak_D() {
-    digitalWrite(motD_IN3, LOW);
-    digitalWrite(motD_IN4, LOW);
+    digitalWrite(motD_IN3, HIGH);
+    digitalWrite(motD_IN4, HIGH);
     analogWrite(pinPowerD, 0);
 }
 
 void motorBreak_G() {
-    digitalWrite(motG_IN1, LOW);
-    digitalWrite(motG_IN2, LOW);
+    digitalWrite(motG_IN1, HIGH);
+    digitalWrite(motG_IN2, HIGH);
     analogWrite(pinPowerG, 0);
 }
 
@@ -156,30 +158,33 @@ void asservissement(){
     }
 
 
-    if ( !motorStopped_G ) TournerDroite_G(vitMoteur_G);
-    if ( !motorStopped_D ) TournerDroite_D(vitMoteur_D);
-    //*
-    // DEBUG
-    Serial.print(vit_roue_tour_sec_G);  // affiche Ã  gauche la vitesse et Ã  droite l'erreur_G
-    Serial.print(" : ");
-    Serial.print(vit_roue_tour_sec_D);  // affiche Ã  gauche la vitesse et Ã  droite l'erreur_D
-    //Serial.print(" : ");
-    //Serial.print(erreur_G, 4);
-    //Serial.print(" : ");
-    //Serial.print(vitMoteur_G);
-    Serial.println();
-    //*/
-    /*
+    if (!motorStopped_G ) TournerDroite_G(vitMoteur_G);
+    if (!motorStopped_D ) TournerDroite_D(vitMoteur_D);
+    /*// Affiche nbTick
     Serial.print(tick_codeuse_pos_G);
     Serial.print(" : ");
     Serial.print(tick_codeuse_pos_D);
+    Serial.println();
+    //*/
+
+    /*// Affiche vitesse
+    Serial.print(vit_roue_tour_sec_G);  // affiche Ã  gauche la vitesse et Ã  droite l'erreur_G
+    Serial.print(" : ");
+    Serial.print(vit_roue_tour_sec_D);  // affiche Ã  gauche la vitesse et Ã  droite l'erreur_D
+    Serial.print(" : ");
+    //*/
+
+    /*// Affiche erreur
+    Serial.print(erreur_G, 4);
+    Serial.print(" : ");
+    Serial.print(vitMoteur_G);
     Serial.println();
     //*/
 }
 
 void Forward(int distanceNbTick){
     consigneNbTick_G = distanceNbTick;
-    consigneNbTick_D = distanceNbTick;
+    consigneNbTick_D = distanceNbTick-200;
     tick_codeuse_pos_G = tick_codeuse_pos_D = 0;
     motorStopped_G = motorStopped_D = false;
 
@@ -191,24 +196,21 @@ void Forward(int distanceNbTick){
     // Interruption pour calcul du PID et asservissement appelee toutes les 10ms
     timerNum = timer.setInterval(1000/frequence_echantillonnage, asservissement);
 
-
+    bool change = false;
     while(!motorStopped_G || !motorStopped_D) {
         timer.run();  //on fait tourner l'horloge
         delay(10);
         //*
-        bool change = false;
-        if ((!change) && (consigne_moteur_G < 2.0 && consigne_moteur_D < 2.0)) {
-            consigne_moteur_G += 0.050;
-            consigne_moteur_D += 0.050;
+        if (!change){
+            if (consigne_moteur_G < 1.4) consigne_moteur_G += 0.050;  // valeur bonne pour drapeau : 1.4 ou 1.35
+            if (consigne_moteur_D < 1.35) consigne_moteur_D += 0.050;  // valeur bonne pour drapeau : 1.2
         }
-        if (consigne_moteur_G >= 1.8) {
-            change = true;
-        }
+        if (consigne_moteur_G >= 1.4) change = true;
         //*/
         //*
-        if (change && (consigne_moteur_G > 0 && consigne_moteur_D > 0)) {
-            consigne_moteur_G -= 0.01;
-            consigne_moteur_D -= 0.01;
+        if (change){
+            if (tick_codeuse_pos_G >= consigneNbTick_G-400 && consigne_moteur_G > 0.8) consigne_moteur_G -= 0.05;
+            if (tick_codeuse_pos_D >= consigneNbTick_D-400 && consigne_moteur_D > 0.8) consigne_moteur_D -= 0.05;
         }
         //*/
         /*
@@ -229,13 +231,18 @@ void setup() {
     pinMode( motG_IN1, OUTPUT );
     pinMode( motG_IN2, OUTPUT );
 
+    Myservo.attach(pin_servo);
+
     analogWrite(pinPowerG, 0);  // Initialisation sortie moteur Ã  0
     delay(300);                // Pause de 0,3 sec pour laisser le temps au moteur de s'arrÃ©ter si celui-ci est en marche
 }
 
 /* Fonction principale */
 void loop() {
-    Forward(4*960);//4*960);
+    //testServo();
+    Forward(5*960);//4*960);
+    //motorBreak_D();
+    //motorBreak_G();
     Serial.println("Terminé");
     while(1);
 }
