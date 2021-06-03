@@ -130,7 +130,6 @@ void compteur_D() {
 //---- Interruption pour calcul du P
 void asservissement(){
 
-
     // Calcul de l'erreur_G
     int frequence_codeuse_G = frequence_echantillonnage * tick_codeuse_G; //100*tick_codeuse_G
     int frequence_codeuse_D = frequence_echantillonnage * tick_codeuse_D; //100*tick_codeuse_G
@@ -176,10 +175,12 @@ void asservissement(){
         }
     }
 
+    /*
     Serial.print(!motorStopped_G);
     Serial.print(" : ");
     Serial.print(!motorStopped_D);
     Serial.println();
+     */
     if (!motorStopped_G ) directionFunction_L(vitMoteur_G);
     if (!motorStopped_D ) directionFunction_D(vitMoteur_D);
     /*// Affiche nbTick
@@ -189,7 +190,7 @@ void asservissement(){
     Serial.println();
     //*/
 
-    /*// Affiche vitesse
+    //*// Affiche vitesse
     Serial.print(vit_roue_tour_sec_G);  // affiche Ã  gauche la vitesse et Ã  droite l'erreur_G
     Serial.print(" : ");
     Serial.print(vit_roue_tour_sec_D);  // affiche Ã  gauche la vitesse et Ã  droite l'erreur_D
@@ -216,7 +217,7 @@ void move(float distance, String direction){
     consigne_moteur_D = 0;
     int distanceNbTick = distanceToNbTicks(distance);
     consigneNbTick_G = distanceNbTick;
-    consigneNbTick_D = distanceNbTick-200;
+    consigneNbTick_D = distanceNbTick;
     tick_codeuse_pos_G = tick_codeuse_pos_D = 0;
     if (direction.compareTo("leftForward") == 0){
         motorStopped_G = false;
@@ -228,7 +229,17 @@ void move(float distance, String direction){
         motorStopped_D = false;
         directionFunction_L = nothing;
         directionFunction_D = motorForward_D;
-    } else if (direction.compareTo("forward") == 0){
+    } if (direction.compareTo("leftBackward") == 0){
+        motorStopped_G = false;
+        motorStopped_D = true;
+        directionFunction_L = motorBackWard_G;
+        directionFunction_D = nothing;
+    } else if (direction.compareTo("rightForward") == 0){
+        motorStopped_G = true;
+        motorStopped_D = false;
+        directionFunction_L = nothing;
+        directionFunction_D = motorBackWard_D;
+    }else if (direction.compareTo("forward") == 0){
         motorStopped_G = false;
         motorStopped_D = false;
         directionFunction_L = motorForward_G;

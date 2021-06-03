@@ -17,15 +17,18 @@ void setup() {
 
 /* Fonction principale */
 void loop() {
-    //testServo();
+    testServo();
     //move(5*960);//4*960);
     //Serial.println(distanceToNbTicks(2*3.14159265358*55));
     //move(1000, "both");
+    /*
     move(355, "rightForward");
     delay(500);
     move(355, "forward");
     delay(500);
     move(355, "backward");
+    //*/
+    move(1000, "forward");
     Serial.println("Terminé");
     while(1);
 }
