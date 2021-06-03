@@ -5,6 +5,8 @@
 #ifndef TEST_ALLCOMPONANTS_SERVOPERSO_H
 #define TEST_ALLCOMPONANTS_SERVOPERSO_H
 
+#include <Servo.h>
+
 //servo positionné sur la gauche du robot
 Servo Myservo;
 
