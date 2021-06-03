@@ -12,8 +12,9 @@ const byte IN2=9; // 2A
 
 /* Moteur Gauche*/
 const byte ENB=13; //PWM
-const byte IN4=12; // Dir 1B
 const byte IN3=11; // 2B
+const byte IN4=12; // Dir 1B
+
 
 int vitesseENA = 150;
 int vitesseENB = 150;
