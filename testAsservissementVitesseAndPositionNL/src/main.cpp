@@ -21,13 +21,13 @@ const int tick_par_tour_codeuse = 32;  //64 tick sur deux capteurs hall, ici un 
 const int motG_IN1 = 8;    // Commande de sens moteur, Input 1
 const int motG_IN2 = 9;    // Commande de sens moteur, Input 2
 const int pinPowerG  = 7;    // Commande de vitesse moteur, Output Enabled1
-volatile bool motorStopped_G = false;  // indique si un moteur a été stoppé pour ne plus l'asservir
+volatile bool motorStopped_G = true;  // indique si un moteur a été stoppé pour ne plus l'asservir
 
 //definition des entrÃ©es Moteur Droite
 const int motD_IN3 = 12;    // Commande de sens moteur, Input 1
 const int motD_IN4 = 11;    // Commande de sens moteur, Input 2
 const int pinPowerD  = 13;    // Commande de vitesse moteur, Output Enabled1
-volatile bool motorStopped_D = false;
+volatile bool motorStopped_D = true;
 
 //consigne en tour/s
 //const float consigne_moteur_G = 0;//2;  // Consigne nombre de tours de roue par seconde moteur Gauche
@@ -53,7 +53,7 @@ const float kiD = 0.6;
 const float kdD = 200;
 
 //---- fonction pour faire tourner le moteur dans un sens (a droite)
-void TournerDroite_G( int powerRate ) {
+void TournerGauche_G(int powerRate ) {
     digitalWrite(motG_IN1, HIGH);
     digitalWrite(motG_IN2, LOW);
     analogWrite(pinPowerG, powerRate);
@@ -85,8 +85,8 @@ void compteur_G() {
     if(tick_codeuse_pos_G >= consigneNbTick_G) {
         motorBreak_G();
         motorStopped_G = true;
-        //detachInterrupt(digitalPinToInterrupt(21));
-        //tick_codeuse_pos_G = 0;
+        detachInterrupt(digitalPinToInterrupt(21));
+        tick_codeuse_pos_G = 0;
     }
     //*/
     // On incrÃ©mente le nombre de tick de la codeuse.   un seul sens
@@ -100,8 +100,8 @@ void compteur_D() {
     if(tick_codeuse_pos_D >= consigneNbTick_D) {
         motorBreak_D();
         motorStopped_D = true;
-        //detachInterrupt(digitalPinToInterrupt(19));
-        //tick_codeuse_D = 0;
+        detachInterrupt(digitalPinToInterrupt(19));
+        tick_codeuse_D = 0;
     }
     //*/
     // On incrÃ©mente le nombre de tick de la codeuse.   un seul sens
@@ -157,8 +157,11 @@ void asservissement(){
         }
     }
 
-
-    if (!motorStopped_G ) TournerDroite_G(vitMoteur_G);
+    Serial.print(!motorStopped_G);
+    Serial.print(" : ");
+    Serial.print(!motorStopped_D);
+    Serial.println();
+    if (!motorStopped_G ) TournerGauche_G(vitMoteur_G);
     if (!motorStopped_D ) TournerDroite_D(vitMoteur_D);
     /*// Affiche nbTick
     Serial.print(tick_codeuse_pos_G);
@@ -182,11 +185,32 @@ void asservissement(){
     //*/
 }
 
-void Forward(int distanceNbTick){
+int distanceToNbTicks(float distance){
+    float pi = 3.1415926535879323;
+    float r = 55;
+    float perim = 2*pi*r;
+    return (int) distance/(perim/960);
+}
+
+void Forward(float distance, String motorToRun){
+    consigne_moteur_G = 0;
+    consigne_moteur_D = 0;
+    int distanceNbTick = distanceToNbTicks(distance);
     consigneNbTick_G = distanceNbTick;
     consigneNbTick_D = distanceNbTick-200;
     tick_codeuse_pos_G = tick_codeuse_pos_D = 0;
-    motorStopped_G = motorStopped_D = false;
+    if (motorToRun.compareTo("left") == 0){
+        motorStopped_G = false;
+        motorStopped_D = true;
+    }
+    else if (motorToRun.compareTo("right") == 0){
+        motorStopped_G = true;
+        motorStopped_D = false;
+    }
+    else if (motorToRun.compareTo("both") == 0){
+        motorStopped_G = false;
+        motorStopped_D = false;
+    }
 
     // Interruption sur tick de la codeuse du moteur Gauche  (interruption 0 = pin2 arduino)
     attachInterrupt(digitalPinToInterrupt(21), compteur_G, CHANGE);
@@ -213,18 +237,9 @@ void Forward(int distanceNbTick){
             if (tick_codeuse_pos_D >= consigneNbTick_D-400 && consigne_moteur_D > 0.8) consigne_moteur_D -= 0.05;
         }
         //*/
-        /*
-        if(tick_codeuse_pos_G >= consigneNbTick_G-0.5*consigneNbTick_G) {
-            consigne_moteur_G -= 0.050;
-        }
-        if(tick_codeuse_pos_D >= consigneNbTick_D-0.5*consigneNbTick_D) {
-            consigne_moteur_D -= 0.050;
-        }
-        /*/
     }
 }
 
-/* Routine d'initialisation */
 void setup() {
     Serial.begin(9600);         // Initialisation port COM
     pinMode(pinPowerG, OUTPUT);    // Sorties commande moteur
@@ -240,9 +255,12 @@ void setup() {
 /* Fonction principale */
 void loop() {
     //testServo();
-    Forward(5*960);//4*960);
-    //motorBreak_D();
-    //motorBreak_G();
+    //Forward(5*960);//4*960);
+    //Serial.println(distanceToNbTicks(2*3.14159265358*55));
+    //Forward(1000, "both");
+    Forward(355, "right");
+    delay(500);
+    Forward(355, "both");
     Serial.println("Terminé");
     while(1);
 }
