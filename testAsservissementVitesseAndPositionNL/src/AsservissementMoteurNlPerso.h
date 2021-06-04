@@ -7,8 +7,10 @@
 
 #include <SimpleTimer.h>
 
+
+
 SimpleTimer timer;                  // Timer pour Ã©chantillonnage
-volatile int timerNum; // Numéro du timer pour pouvoir l'arrêter
+volatile int timerID; // Numéro du timer pour pouvoir l'arrêter
 
 volatile unsigned int tick_codeuse_pos_G = 0; // unsigned int
 volatile unsigned int tick_codeuse_pos_D = 0;
@@ -51,11 +53,11 @@ float somme_erreur_D = 0;
 
 //Definition des constantes du correcteur PID
 const float kpG = 200; //350; //1100; // Coefficient proportionnel (choisis par essais successifs)
-const float kiG = 0.2; //5;   // Coefficient intÃ©grateur
+const float kiG = 0.6;//0.2; //5;   // Coefficient intÃ©grateur
 const float kdG = 200;//50; //100; // Coefficient dÃ©rivateur
 
-const float kpD = 270;//350; //1000; // Coefficient proportionnel (choisis par essais successifs)
-const float kiD = 0.6;
+const float kpD = 300;//270;//350; //1000; // Coefficient proportionnel (choisis par essais successifs)
+const float kiD = 0.9;
 const float kdD = 200;
 
 void nothing(int) {}
@@ -104,6 +106,7 @@ void compteur_G() {
     if(tick_codeuse_pos_G >= consigneNbTick_G) {
         motorBreak_G();
         motorStopped_G = true;
+        if(motorStopped_D) timer.disable(timerID);
         detachInterrupt(digitalPinToInterrupt(21));
         tick_codeuse_pos_G = 0;
     }
@@ -119,6 +122,7 @@ void compteur_D() {
     if(tick_codeuse_pos_D >= consigneNbTick_D) {
         motorBreak_D();
         motorStopped_D = true;
+        if(motorStopped_G) timer.disable(timerID);
         detachInterrupt(digitalPinToInterrupt(19));
         tick_codeuse_D = 0;
     }
@@ -194,7 +198,7 @@ void asservissement(){
     Serial.print(vit_roue_tour_sec_G);  // affiche Ã  gauche la vitesse et Ã  droite l'erreur_G
     Serial.print(" : ");
     Serial.print(vit_roue_tour_sec_D);  // affiche Ã  gauche la vitesse et Ã  droite l'erreur_D
-    Serial.print(" : ");
+    Serial.println();
     //*/
 
     /*// Affiche erreur
@@ -213,8 +217,40 @@ int distanceToNbTicks(float distance){
 }
 
 void move(float distance, String direction){
+
+    tick_codeuse_pos_G = 0; // unsigned int
+    tick_codeuse_pos_D = 0;
+    tick_codeuse_G = 0;     // Compteur de tick de la codeuse du moteur Gauche
+    tick_codeuse_D = 0;     // Compteur de tick de la codeuse du moteur Droit
+    vitMoteur_G = 0;                 // Commande du moteur Gauche
+    vitMoteur_D = 0;                 // Commande du moteur Droite
+
+//consigne en tour/s
+//const float consigne_moteur_G = 0;//2;  // Consigne nombre de tours de roue par seconde moteur Gauche
+    consigne_moteur_G = 0;//const float consigne_moteur_D = 0;//2;  // Consigne nombre de tours de roue par seconde moteur Droit
+    consigne_moteur_D = 0;
+
+    consigneNbTick_G = 0;
+    consigneNbTick_D = 0;
+
+// init calculs asservissement PID
+    erreur_G_precedente = consigne_moteur_G; // (en tour/s)
+    somme_erreur_G = 0;
+    erreur_D_precedente = consigne_moteur_D; // (en tour/s)
+    somme_erreur_D = 0;
+
+
+
+
     consigne_moteur_G = 0;
     consigne_moteur_D = 0;
+    erreur_G_precedente = consigne_moteur_G; // (en tour/s)
+    somme_erreur_G = 0;
+    erreur_D_precedente = consigne_moteur_D; // (en tour/s)
+    somme_erreur_D = 0;
+    vitMoteur_G = 0;
+    vitMoteur_D = 0;
+
     int distanceNbTick = distanceToNbTicks(distance);
     consigneNbTick_G = distanceNbTick;
     consigneNbTick_D = distanceNbTick;
@@ -234,7 +270,7 @@ void move(float distance, String direction){
         motorStopped_D = true;
         directionFunction_L = motorBackWard_G;
         directionFunction_D = nothing;
-    } else if (direction.compareTo("rightForward") == 0){
+    } else if (direction.compareTo("rightBackward") == 0){
         motorStopped_G = true;
         motorStopped_D = false;
         directionFunction_L = nothing;
@@ -249,6 +285,11 @@ void move(float distance, String direction){
         motorStopped_D = false;
         directionFunction_L = motorBackWard_G;
         directionFunction_D = motorBackWard_D;
+    } else if (direction.compareTo("turnAroundLeft") == 0){
+        motorStopped_G = false;
+        motorStopped_D = false;
+        directionFunction_L = motorBackWard_G;
+        directionFunction_D = motorForward_D;
     }
 
     // Interruption sur tick de la codeuse du moteur Gauche  (interruption 0 = pin2 arduino)
@@ -257,7 +298,7 @@ void move(float distance, String direction){
     attachInterrupt(digitalPinToInterrupt(19), compteur_D, CHANGE);
 
     // Interruption pour calcul du PID et asservissement appelee toutes les 10ms
-    timerNum = timer.setInterval(1000/frequence_echantillonnage, asservissement);
+    timerID = timer.setInterval(1000/frequence_echantillonnage, asservissement);
 
     bool change = false;
     while(!motorStopped_G || !motorStopped_D) {
@@ -265,10 +306,10 @@ void move(float distance, String direction){
         delay(10);
         //*
         if (!change){
-            if (consigne_moteur_G < 1.4) consigne_moteur_G += 0.050;  // valeur bonne pour drapeau : 1.4 ou 1.35
-            if (consigne_moteur_D < 1.35) consigne_moteur_D += 0.050;  // valeur bonne pour drapeau : 1.2
+            if (consigne_moteur_G < 2) consigne_moteur_G += 0.050;  // valeur bonne pour drapeau : 1.4
+            if (consigne_moteur_D < 2) consigne_moteur_D += 0.050;  // valeur bonne pour drapeau : 1.35
         }
-        if (consigne_moteur_G >= 1.4) change = true;
+        if (consigne_moteur_G >= 2) change = true;
         //*/
         //*
         if (change){
