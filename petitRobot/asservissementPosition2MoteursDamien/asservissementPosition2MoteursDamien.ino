@@ -41,7 +41,7 @@ boolean C_set = false;
 boolean D_set = false;
 
 //Consigne
-int target_ticksA = 1920*3;
+int target_ticksA = (1920*3);
 int target_ticksB = 1920*3;
 
 // init calculs asservissement PID
@@ -119,8 +119,8 @@ void loop()
 
       encoder0PosA = 0;
       encoder0PosB = 0;
-      target_ticksA = 1920;
-      target_ticksB = 1920;
+      target_ticksA = (1920*1);
+      target_ticksB = (1920*1);
       fin = false;
       cpt++;
       }
@@ -150,11 +150,11 @@ void asservissement()
     erreurPrecedenteB = erreurB;
     
     // Normalisation et contrôle du moteur
-    if ( vitMoteurA > 100 ) vitMoteurA = 100;  // on est branché sur un pont en H L293D
-    else if ( vitMoteurA < -100 ) vitMoteurA = -100;
+    if ( vitMoteurA > 200 ) vitMoteurA = 200;  // on est branché sur un pont en H L293D
+    else if ( vitMoteurA < -200 ) vitMoteurA = -200;
 
-    if ( vitMoteurB > 100 ) vitMoteurB = 103;  // on est branché sur un pont en H L293D
-    else if ( vitMoteurB < -100 ) vitMoteurB = -103;
+    if ( vitMoteurB > 200 ) vitMoteurB = 200;  // on est branché sur un pont en H L293D
+    else if ( vitMoteurB < -200 ) vitMoteurB = -200;
     
     TournerA (vitMoteurA);
     TournerB (vitMoteurB);
