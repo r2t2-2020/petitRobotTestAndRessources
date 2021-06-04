@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #include <SimpleTimer.h>
 #include <digitalWriteFast.h> 
 //30 pour 1 et 64 cpr
