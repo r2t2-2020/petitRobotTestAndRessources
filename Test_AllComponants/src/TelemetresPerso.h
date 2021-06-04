@@ -42,17 +42,17 @@ void testTelemetres()
     Dist_AvG = telAvG.getDistance();
     Serial.print("Avant gauche : ");
     Serial.println(Dist_AvG);
-    delay(1000);
+    delay(100);
 
     Dist_AvD = telAvD.getDistance();
     Serial.print("Avant droit : ");
     Serial.println(Dist_AvD);
-    delay(1000);
+    delay(100);
 
     Dist_ArG = telArG.getDistance();
     Serial.print("Arriere gauche : ");
     Serial.println(Dist_ArG);
-    delay(1000);
+    delay(100);
 
     Dist_ArD = telArD.getDistance();
     Serial.print("Arriere droit : ");

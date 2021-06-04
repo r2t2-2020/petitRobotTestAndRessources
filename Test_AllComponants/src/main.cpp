@@ -54,12 +54,7 @@ void loop() {
         MsTimer2::start();
         isTimerSet = true;
     }
-    Serial.println("Running OK");
-    //Serial.println("Running");
-    delay(500);
 
-    while(1){
-        //pente();
-    }
+
 }
 
