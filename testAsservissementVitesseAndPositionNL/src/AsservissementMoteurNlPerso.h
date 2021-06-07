@@ -54,11 +54,11 @@ float somme_erreur_D = 0;
 //Definition des constantes du correcteur PID
 const float kpG = 200; //350; //1100; // Coefficient proportionnel (choisis par essais successifs)
 const float kiG = 0.6;//0.2; //5;   // Coefficient intÃ©grateur
-const float kdG = 200;//50; //100; // Coefficient dÃ©rivateur
+const float kdG = 0;//200;//50; //100; // Coefficient dÃ©rivateur
 
 const float kpD = 300;//270;//350; //1000; // Coefficient proportionnel (choisis par essais successifs)
 const float kiD = 0.9;
-const float kdD = 200;
+const float kdD = 0;//200;
 
 void nothing(int) {}
 
@@ -140,7 +140,6 @@ void asservissement(){
 
     float vit_roue_tour_sec_G = (float)frequence_codeuse_G / (float)tick_par_tour_codeuse / (float)rapport_reducteur;    //(100*tick_codeuse_G)/32/19
     float vit_roue_tour_sec_D = (float)frequence_codeuse_D / (float)tick_par_tour_codeuse / (float)rapport_reducteur;    //(100*tick_codeuse_G)/32/19
-
     float erreur_G = (consigne_moteur_G) - vit_roue_tour_sec_G; // pour le proportionnel
     float erreur_D = (consigne_moteur_D) - vit_roue_tour_sec_D; // pour le proportionnel
 
@@ -239,9 +238,6 @@ void move(float distance, String direction){
     erreur_D_precedente = consigne_moteur_D; // (en tour/s)
     somme_erreur_D = 0;
 
-
-
-
     consigne_moteur_G = 0;
     consigne_moteur_D = 0;
     erreur_G_precedente = consigne_moteur_G; // (en tour/s)
@@ -290,6 +286,11 @@ void move(float distance, String direction){
         motorStopped_D = false;
         directionFunction_L = motorBackWard_G;
         directionFunction_D = motorForward_D;
+    } else if (direction.compareTo("turnAroundRight") == 0){
+        motorStopped_G = false;
+        motorStopped_D = false;
+        directionFunction_L = motorForward_G;
+        directionFunction_D = motorBackWard_D;
     }
 
     // Interruption sur tick de la codeuse du moteur Gauche  (interruption 0 = pin2 arduino)

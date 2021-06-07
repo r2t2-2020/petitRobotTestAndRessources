@@ -12,18 +12,26 @@ Servo Myservo;
 
 int pin_servo = 6;
 int position = 80; // position souhaitée
-int angle_depart = 140; // vers l'avant
+int angle_depart = 150; // vers l'avant
 int angle_final = 10; //vers l'arriere
-int increment = 5; // nombre de pas à la fois
+int increment = 10; // nombre de pas à la fois
 
 void testServo(){
     Myservo.write(position);
-    /*
-    for(int i=position; i<=angle_depart; i += increment){
+
+    for(int i=position; i>=angle_final; i -= increment){
         Myservo.write(i);
         delay(200);
     }
     //*/
+}
+
+void deployArm(){
+    Myservo.write(position);
+}
+
+void sendArmToHome(){
+    Myservo.write(angle_depart);
 }
 
 
