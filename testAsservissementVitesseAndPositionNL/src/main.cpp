@@ -21,7 +21,7 @@ void setup() {
     pinMode( motG_IN2, OUTPUT );
 
     pinMode(pin_tirette, INPUT_PULLUP);
-    MsTimer2::set(100000, finRun); // MsTimer2 peut avoir des conflits avec d'autres librairies et certains pins (comme le 10)
+    //MsTimer2::set(100000, finRun); // MsTimer2 peut avoir des conflits avec d'autres librairies et certains pins (comme le 10)
 
     Myservo.attach(pin_servo);
     Myservo.write(angle_depart);
@@ -37,18 +37,84 @@ void loop() {
     while(digitalRead(pin_tirette) && !isTimerSet);
 
     if(!isTimerSet){
-        MsTimer2::start();
+        //MsTimer2::start();
         isTimerSet = true;
     }
+    //move(1500, "forward");
+
     sendArmToHome();
-    int waitTime = 1000;
+    int waitTime = 500;
+
     move(100, "forward");
     delay(waitTime);
 
     move(100, "turnAroundRight");
     delay(waitTime);
 
-    move(530, "forward");
+    move(520, "forward");
+    delay(waitTime);
+
+    move(300, "backward");
+    delay(waitTime);
+
+    move(320, "turnAroundRight");
+    delay(waitTime);
+
+    move(1420, "forward");
+    delay(waitTime);
+
+    deployArm();
+    delay(waitTime);
+
+    move(100, "turnAroundRight");
+    delay(waitTime);
+
+    move(600, "forward");
+    delay(waitTime);
+
+    sendArmToHome();
+    delay(waitTime);
+    // girouettes redréssées !!
+    /*// après girouettes
+
+    move(50, "backward");
+    delay(waitTime);
+
+    move(30, "rightBackward");
+    delay(waitTime);
+
+    deployArm();
+    move(30, "forward");  // leftForward
+    delay(waitTime);
+    sendArmToHome();
+    move(350, "rightBackward");
+    delay(waitTime);
+
+    move(500, "forward");
+    delay(waitTime);
+
+    move(110, "turnAroundLeft");
+    delay(waitTime);
+
+    move(500, "forward");
+    delay(waitTime);
+
+    move(110, "turnAroundRight");
+    delay(waitTime);
+    //*/
+
+
+    
+    /*// strategie Sud
+    sendArmToHome();
+    int waitTime = 500;
+    move(100, "forward");
+    delay(waitTime);
+
+    move(100, "turnAroundRight");
+    delay(waitTime);
+
+    move(520, "forward");
     delay(waitTime);
 
     move(300, "backward");
@@ -74,6 +140,9 @@ void loop() {
 
     move(1000, "forward");
     delay(waitTime);
+    //*/
+
+
     /* // test manche à air à reculons
     deployArm();
     move(30, "backward");
