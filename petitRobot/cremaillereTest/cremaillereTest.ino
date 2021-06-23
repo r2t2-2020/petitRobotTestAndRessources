@@ -1,4 +1,6 @@
 // Cette librairie permet à une carte Arduino de contrôler des servomoteurs
+
+//https://www.norwegiancreations.com/2017/09/arduino-tutorial-using-millis-instead-of-delay/ POUR REMPLACER DELAY PAR MILLIS
 /*#include <Servo.h> 
 
 // Crée un objet de type "Servo", nommé -> rouedroite
