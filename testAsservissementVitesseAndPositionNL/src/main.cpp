@@ -1,11 +1,19 @@
 #include <Arduino.h>
 #include <ServoPerso.h>
 #include "AsservissementMoteurNlPerso.h"
+#include <StrategiePerso.h>
 #include <MsTimer2.h>
+#include <TelemetresPerso.h>
 
 // Tirette
 const int pin_tirette = 4;
 bool isTimerSet = false;
+
+// crémaillère
+int arret = 1520; //1510;
+int vitesse = 200;
+int duree = 700;
+
 
 void finRun() {
     motorStopped_D = motorStopped_G = true;
@@ -15,16 +23,28 @@ void finRun() {
 }
 
 void setup() {
+
+    pinMode(50, INPUT);
+    pinMode(51, INPUT);
+    pinMode(52, INPUT);
+    pinMode(53, INPUT);
+
+    PCICR = 1;
+    PCMSK0 = 0b00001111;
+
+    sei();
+
     Serial.begin(9600);         // Initialisation port COM
     pinMode(pinPowerG, OUTPUT);    // Sorties commande moteur
-    pinMode( motG_IN1, OUTPUT );
-    pinMode( motG_IN2, OUTPUT );
+    pinMode(motG_IN1, OUTPUT);
+    pinMode(motG_IN2, OUTPUT);
 
     pinMode(pin_tirette, INPUT_PULLUP);
     //MsTimer2::set(100000, finRun); // MsTimer2 peut avoir des conflits avec d'autres librairies et certains pins (comme le 10)
 
     Myservo.attach(pin_servo);
-    Myservo.write(angle_depart);
+    //Myservo.write(angle_depart);
+    Myservo.write(arret);
 
     analogWrite(pinPowerG, 0);  // Initialisation sortie moteur Ã  0
     delay(300);                // Pause de 0,3 sec pour laisser le temps au moteur de s'arrÃ©ter si celui-ci est en marche
@@ -34,15 +54,29 @@ void setup() {
 void loop() {
 
 
-    while(digitalRead(pin_tirette) && !isTimerSet);
+    //while(digitalRead(pin_tirette) && !isTimerSet);
 
     if(!isTimerSet){
         //MsTimer2::start();
         isTimerSet = true;
     }
-    //move(1500, "forward");
 
-    sendArmToHome();
+   // strategieGauche();
+
+    //move(1000, "forward");
+    /*
+    while(1){
+        move(200, "forward");
+        delay(400);
+        move(200, "backward");
+        delay(400);
+    }
+     */
+
+   // move(2000, "forward");
+
+ // TRATEGIE PRINCIPALE
+    //sendArmToHome();
     int waitTime = 500;
 
     move(100, "forward");
@@ -51,33 +85,50 @@ void loop() {
     move(100, "turnAroundRight");
     delay(waitTime);
 
+    disableTels();
     move(520, "forward");
     delay(waitTime);
 
     move(300, "backward");
     delay(waitTime);
 
-    move(320, "turnAroundRight");
+    move(310, "turnAroundRight");
     delay(waitTime);
+    ableTels();
 
     move(1420, "forward");
     delay(waitTime);
 
-    deployArm();
+
+
+    move(90, "turnAroundRight");
     delay(waitTime);
 
-    move(100, "turnAroundRight");
+    move(200, "forward");
     delay(waitTime);
 
-    move(600, "forward");
+    move(260, "backward");
     delay(waitTime);
 
-    sendArmToHome();
+    //deployArm();
+    Myservo.write(arret+vitesse);
+    delay(duree);
+    Myservo.write(arret);
+    delay(waitTime);
+
+    move(650, "forward");
+    delay(waitTime);
+
+
+    //sendArmToHome();
+    Myservo.write(arret-vitesse);
+    delay(duree);
+    Myservo.write(arret);
     delay(waitTime);
     // girouettes redréssées !!
-    /*// après girouettes
+    //*/ // après girouettes
 
-    move(50, "backward");
+    /*move(50, "backward");
     delay(waitTime);
 
     move(30, "rightBackward");
@@ -101,10 +152,10 @@ void loop() {
 
     move(110, "turnAroundRight");
     delay(waitTime);
-    //*/
+    */
 
 
-    
+
     /*// strategie Sud
     sendArmToHome();
     int waitTime = 500;

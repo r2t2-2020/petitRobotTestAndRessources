@@ -6,6 +6,7 @@
 #define TESTASSERVISSEMENTVITESSEANDPOSITIONNL_ASSERVISSEMENTMOTEURNLPERSO_H
 
 #include <SimpleTimer.h>
+#include <TelemetresPerso.h>
 
 
 
@@ -52,7 +53,7 @@ float erreur_D_precedente = consigne_moteur_D; // (en tour/s)
 float somme_erreur_D = 0;
 
 //Definition des constantes du correcteur PID
-const float kpG = 200; //350; //1100; // Coefficient proportionnel (choisis par essais successifs)
+const float kpG = 300;// 200; //350; //1100; // Coefficient proportionnel (choisis par essais successifs)
 const float kiG = 0.6;//0.2; //5;   // Coefficient intÃ©grateur
 const float kdG = 0;//200;//50; //100; // Coefficient dÃ©rivateur
 
@@ -247,6 +248,7 @@ void move(float distance, String direction){
     vitMoteur_G = 0;
     vitMoteur_D = 0;
 
+
     int distanceNbTick = distanceToNbTicks(distance);
     consigneNbTick_G = distanceNbTick;
     consigneNbTick_D = distanceNbTick;
@@ -296,28 +298,37 @@ void move(float distance, String direction){
     // Interruption sur tick de la codeuse du moteur Gauche  (interruption 0 = pin2 arduino)
     attachInterrupt(digitalPinToInterrupt(21), compteur_G, CHANGE);
     // Interruption sur tick de la codeuse du moteur Droit  (interruption 1 = pin3 arduino)
-    attachInterrupt(digitalPinToInterrupt(19), compteur_D, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(20), compteur_D, CHANGE);
 
     // Interruption pour calcul du PID et asservissement appelee toutes les 10ms
     timerID = timer.setInterval(1000/frequence_echantillonnage, asservissement);
 
     bool change = false;
     while(!motorStopped_G || !motorStopped_D) {
-        timer.run();  //on fait tourner l'horloge
-        delay(10);
-        //*
-        if (!change){
-            if (consigne_moteur_G < 2) consigne_moteur_G += 0.050;  // valeur bonne pour drapeau : 1.4
-            if (consigne_moteur_D < 2) consigne_moteur_D += 0.050;  // valeur bonne pour drapeau : 1.35
+        if (isObstacle_AV) {
+            motorBreak_G();
+            motorBreak_D();
+            delay(1000);
+            change = false; // réactive rampe aceleration
+            consigne_moteur_G = consigne_moteur_D = 0;
+            if(!detectObstacle_AV()) isObstacle_AV = false;
+        } else {
+            timer.run();  //on fait tourner l'horloge
+            delay(10);
+            //*
+            if (!change) {
+                if (consigne_moteur_G < 2) consigne_moteur_G += 0.050;  // valeur bonne pour drapeau : 1.4
+                if (consigne_moteur_D < 2) consigne_moteur_D += 0.050;  // valeur bonne pour drapeau : 1.35
+            }
+            if (consigne_moteur_G >= 2) change = true;
+            //*/
+            //*
+            if (change) {
+                if (tick_codeuse_pos_G >= consigneNbTick_G - 400 && consigne_moteur_G > 0.8) consigne_moteur_G -= 0.05;
+                if (tick_codeuse_pos_D >= consigneNbTick_D - 400 && consigne_moteur_D > 0.8) consigne_moteur_D -= 0.05;
+            }
+            //*/
         }
-        if (consigne_moteur_G >= 2) change = true;
-        //*/
-        //*
-        if (change){
-            if (tick_codeuse_pos_G >= consigneNbTick_G-400 && consigne_moteur_G > 0.8) consigne_moteur_G -= 0.05;
-            if (tick_codeuse_pos_D >= consigneNbTick_D-400 && consigne_moteur_D > 0.8) consigne_moteur_D -= 0.05;
-        }
-        //*/
     }
 }
 
