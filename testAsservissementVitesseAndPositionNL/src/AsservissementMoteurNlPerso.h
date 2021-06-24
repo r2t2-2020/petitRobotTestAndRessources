@@ -7,7 +7,7 @@
 
 #include <SimpleTimer.h>
 #include <TelemetresPerso.h>
-
+#include <WallDetector.h>
 
 
 SimpleTimer timer;                  // Timer pour Ã©chantillonnage
@@ -124,7 +124,7 @@ void compteur_D() {
         motorBreak_D();
         motorStopped_D = true;
         if(motorStopped_G) timer.disable(timerID);
-        detachInterrupt(digitalPinToInterrupt(19));
+        detachInterrupt(digitalPinToInterrupt(20));
         tick_codeuse_D = 0;
     }
     //*/
@@ -194,7 +194,7 @@ void asservissement(){
     Serial.println();
     //*/
 
-    //*// Affiche vitesse
+    /*// Affiche vitesse
     Serial.print(vit_roue_tour_sec_G);  // affiche Ã  gauche la vitesse et Ã  droite l'erreur_G
     Serial.print(" : ");
     Serial.print(vit_roue_tour_sec_D);  // affiche Ã  gauche la vitesse et Ã  droite l'erreur_D
@@ -253,12 +253,25 @@ void move(float distance, String direction){
     consigneNbTick_G = distanceNbTick;
     consigneNbTick_D = distanceNbTick;
     tick_codeuse_pos_G = tick_codeuse_pos_D = 0;
+
+    String subDirectionInfo = direction.substring(direction.length()-4);
+    Serial.println(subDirectionInfo);
+    if(subDirectionInfo.compareTo("Wall") == 0){
+        Serial.println("activating wall detector");
+        enableWallDetector();
+    }
+
     if (direction.compareTo("leftForward") == 0){
         motorStopped_G = false;
         motorStopped_D = true;
         directionFunction_L = motorForward_G;
         directionFunction_D = nothing;
     } else if (direction.compareTo("rightForward") == 0){
+        motorStopped_G = true;
+        motorStopped_D = false;
+        directionFunction_L = nothing;
+        directionFunction_D = motorForward_D;
+    } else if (direction.compareTo("rightForwardWall") == 0){
         motorStopped_G = true;
         motorStopped_D = false;
         directionFunction_L = nothing;
@@ -273,12 +286,22 @@ void move(float distance, String direction){
         motorStopped_D = false;
         directionFunction_L = nothing;
         directionFunction_D = motorBackWard_D;
-    }else if (direction.compareTo("forward") == 0){
+    }else if (direction.compareTo("forward") == 0) {
         motorStopped_G = false;
         motorStopped_D = false;
         directionFunction_L = motorForward_G;
         directionFunction_D = motorForward_D;
-    } else if (direction.compareTo("backward") == 0){
+    } else if (direction.compareTo("forwardWall") == 0) {
+        motorStopped_G = false;
+        motorStopped_D = false;
+        directionFunction_L = motorForward_G;
+        directionFunction_D = motorForward_D;
+    } else if (direction.compareTo("backward") == 0) {
+        motorStopped_G = false;
+        motorStopped_D = false;
+        directionFunction_L = motorBackWard_G;
+        directionFunction_D = motorBackWard_D;
+    }else if (direction.compareTo("backwardWall") == 0){
         motorStopped_G = false;
         motorStopped_D = false;
         directionFunction_L = motorBackWard_G;
@@ -305,6 +328,25 @@ void move(float distance, String direction){
 
     bool change = false;
     while(!motorStopped_G || !motorStopped_D) {
+        if (isWallDetectorEnabled) {
+            /*
+            if (isWall_L) {
+                motorBreak_G();
+                motorStopped_G = true;
+                if(motorStopped_D) timer.disable(timerID);
+                detachInterrupt(digitalPinToInterrupt(21));
+                tick_codeuse_G = 0;
+            }
+             */
+            if (isWall_R) {
+                Serial.println("roue droite");
+                motorBreak_D();
+                motorStopped_D = true;
+                if(motorStopped_G) timer.disable(timerID);
+                detachInterrupt(digitalPinToInterrupt(20));
+                tick_codeuse_D = 0;
+            }
+        }
         if (isObstacle_AV) {
             motorBreak_G();
             motorBreak_D();
@@ -330,6 +372,11 @@ void move(float distance, String direction){
             //*/
         }
     }
+    /*
+    if(subDirectionInfo.compareTo("Wall") == 0){
+        disableWallDetector();
+    }
+     */
 }
 
 #endif //TESTASSERVISSEMENTVITESSEANDPOSITIONNL_ASSERVISSEMENTMOTEURNLPERSO_H

@@ -4,6 +4,7 @@
 #include <StrategiePerso.h>
 #include <MsTimer2.h>
 #include <TelemetresPerso.h>
+#include <WallDetector.h>
 
 // Tirette
 const int pin_tirette = 4;
@@ -23,7 +24,9 @@ void finRun() {
 }
 
 void setup() {
-
+    pinMode(wallDetector_L, INPUT_PULLUP);  // wall detector
+    pinMode(wallDetector_R, INPUT_PULLUP);
+    
     pinMode(50, INPUT);
     pinMode(51, INPUT);
     pinMode(52, INPUT);
@@ -72,10 +75,66 @@ void loop() {
         delay(400);
     }
      */
+    testWallDetector();
 
-   // move(2000, "forward");
+    disableTels();
+    move(5000000, "rightForwardWall");
+    while(1) {
+        Serial.println("fini");
+    }
 
- // TRATEGIE PRINCIPALE
+    //*// TRATEGIE PRINCIPALE 2
+     //sendArmToHome();
+     int waitTime = 500;
+
+     disableTels();
+
+     move(330, "leftForward");
+     delay(waitTime);
+
+     move(500, "forward");
+     delay(waitTime);
+
+     move(300, "backward");
+     delay(waitTime);
+
+     move(360, "turnAroundLeft");
+     delay(waitTime);
+     ableTels();
+
+     move(1420, "forward");
+     delay(waitTime);
+
+
+
+     move(90, "turnAroundRight");
+     delay(waitTime);
+
+     move(200, "forward");
+     delay(waitTime);
+
+     move(260, "backward");
+     delay(waitTime);
+
+     //deployArm();
+     Myservo.write(arret+vitesse);
+     delay(duree);
+     Myservo.write(arret);
+     delay(waitTime);
+
+     move(650, "forward");
+     delay(waitTime);
+
+
+     //sendArmToHome();
+     Myservo.write(arret-vitesse);
+     delay(duree);
+     Myservo.write(arret);
+     delay(waitTime);
+     // girouettes redréssées !!
+     //*/ // après girouettes
+
+ /*// TRATEGIE PRINCIPALE 1
     //sendArmToHome();
     int waitTime = 500;
 

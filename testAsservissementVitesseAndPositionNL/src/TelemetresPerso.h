@@ -22,36 +22,28 @@ bool detectObstacle_AV(){
 
 
 ISR(PCINT0_vect){
-    /*
-        if(digitalRead(53) == 0){ //(PINB & 1<<PORTB0) &&
-            if(isObstacle_AR_D == false){
-                Serial.println("je suis le pin 53, arriere droite");
-                isObstacle_AR_D = isObstacle_AR_D ? false : true;
-            }
+        if(digitalRead(53) == 0){
+            //Serial.println("je suis le pin 53, arriere droite");
+            isObstacle_AR = isObstacle_AR ? false : true;
+            //Serial.println("isObstacle_AR : " + isObstacle_AR);
         }
 
-        if( digitalRead(52) == 0){
-            if (isObstacle_AR_G == false){
-                Serial.println("je suis le pin 52, arriere gauche");
-                isObstacle_AR_G = isObstacle_AR_G ? false : true;
-            }
+        if(digitalRead(52) == 0){
+            //Serial.println("je suis le pin 52, arriere gauche");
+            isObstacle_AR = isObstacle_AR ? false : true;
+            //Serial.println("isObstacle_AR : " + isObstacle_AR);
         }
+
         if(digitalRead(51) == 0){
-            if(isObstacle_AV_D == false){
-                Serial.println("je suis le pin 51, avant droite");
-                isObstacle_AV_D = isObstacle_AV_D ? false : true;
-            }
+            //Serial.println("je suis le pin 51, avant droite");
+            isObstacle_AV = isObstacle_AV ? false : true;
+            //Serial.println("isObstacle_AV : " + isObstacle_AV);
         }
-        */
+
         if(digitalRead(50) == 0){
-            Serial.println("je suis le pin 50, avant gauche");
-            if (isObstacle_AV) {
-                isObstacle_AV = false;
-                Serial.println("isObstacle_AV_G : false");
-            } else {
-                isObstacle_AV = true;
-                Serial.println("isObstacle_AV_G : true");
-            }
+            //Serial.println("je suis le pin 50, avant gauche");
+            isObstacle_AV = isObstacle_AV ? false : true;
+            //Serial.println("isObstacle_AV : " + isObstacle_AV);
         }
 }
 
