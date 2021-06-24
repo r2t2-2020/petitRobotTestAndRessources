@@ -26,7 +26,7 @@ void finRun() {
 void setup() {
     pinMode(wallDetector_L, INPUT_PULLUP);  // wall detector
     pinMode(wallDetector_R, INPUT_PULLUP);
-    
+
     pinMode(50, INPUT);
     pinMode(51, INPUT);
     pinMode(52, INPUT);
@@ -55,6 +55,7 @@ void setup() {
 
 /* Fonction principale */
 void loop() {
+    int waitTime = 500;
 
 
     //while(digitalRead(pin_tirette) && !isTimerSet);
@@ -75,19 +76,34 @@ void loop() {
         delay(400);
     }
      */
-    testWallDetector();
+    //disableTels();
+    //testWallDetector();
+    //testWallDetectorCpt();
 
-    disableTels();
-    move(5000000, "rightForwardWall");
+    //*
     while(1) {
-        Serial.println("fini");
+        //Serial.println("fini");
+        disableTels();
+        move(200, "forward");
+        delay(waitTime);
+        move(100000, "forwardWall");
+        delay(waitTime);
+        ableTels();
+        move(200, "backward");
+        delay(waitTime);
+        move(100000, "backwardWall");
+        delay(waitTime);
     }
+    //*/
 
     //*// TRATEGIE PRINCIPALE 2
      //sendArmToHome();
-     int waitTime = 500;
+
 
      disableTels();
+
+     move(100000, "backwardWall");
+     delay(waitTime);
 
      move(330, "leftForward");
      delay(waitTime);

@@ -266,6 +266,11 @@ void move(float distance, String direction){
         motorStopped_D = true;
         directionFunction_L = motorForward_G;
         directionFunction_D = nothing;
+    } else if (direction.compareTo("leftForwardWall") == 0){
+        motorStopped_G = false;
+        motorStopped_D = true;
+        directionFunction_L = motorForward_G;
+        directionFunction_D = nothing;
     } else if (direction.compareTo("rightForward") == 0){
         motorStopped_G = true;
         motorStopped_D = false;
@@ -329,7 +334,6 @@ void move(float distance, String direction){
     bool change = false;
     while(!motorStopped_G || !motorStopped_D) {
         if (isWallDetectorEnabled) {
-            /*
             if (isWall_L) {
                 motorBreak_G();
                 motorStopped_G = true;
@@ -337,7 +341,6 @@ void move(float distance, String direction){
                 detachInterrupt(digitalPinToInterrupt(21));
                 tick_codeuse_G = 0;
             }
-             */
             if (isWall_R) {
                 Serial.println("roue droite");
                 motorBreak_D();
@@ -359,10 +362,10 @@ void move(float distance, String direction){
             delay(10);
             //*
             if (!change) {
-                if (consigne_moteur_G < 2) consigne_moteur_G += 0.050;  // valeur bonne pour drapeau : 1.4
-                if (consigne_moteur_D < 2) consigne_moteur_D += 0.050;  // valeur bonne pour drapeau : 1.35
+                if (consigne_moteur_G < 1) consigne_moteur_G += 0.050;  // valeur bonne pour drapeau : 1.4
+                if (consigne_moteur_D < 1) consigne_moteur_D += 0.050;  // valeur bonne pour drapeau : 1.35
             }
-            if (consigne_moteur_G >= 2) change = true;
+            if (consigne_moteur_G >= 1) change = true;
             //*/
             //*
             if (change) {
@@ -372,11 +375,9 @@ void move(float distance, String direction){
             //*/
         }
     }
-    /*
     if(subDirectionInfo.compareTo("Wall") == 0){
         disableWallDetector();
     }
-     */
 }
 
 #endif //TESTASSERVISSEMENTVITESSEANDPOSITIONNL_ASSERVISSEMENTMOTEURNLPERSO_H
