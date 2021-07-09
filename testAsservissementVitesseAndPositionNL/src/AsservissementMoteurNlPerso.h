@@ -5,39 +5,52 @@
 #ifndef TESTASSERVISSEMENTVITESSEANDPOSITIONNL_ASSERVISSEMENTMOTEURNLPERSO_H
 #define TESTASSERVISSEMENTVITESSEANDPOSITIONNL_ASSERVISSEMENTMOTEURNLPERSO_H
 
-#include <SimpleTimer.h>
+//#include <SimpleTimer.h>
 #include <TelemetresPerso.h>
 #include <WallDetector.h>
+#include <TimerFive.h>
 
 
-SimpleTimer timer;                  // Timer pour Ã©chantillonnage
+
+// pour utilisation dans l'asservissement
+unsigned long debutRun = 0;
+
+
+
+
+//SimpleTimer timer;                  // Timer pour Ã©chantillonnage
+TimerFive timer;
 volatile int timerID; // Numéro du timer pour pouvoir l'arrêter
 
-volatile unsigned int tick_codeuse_pos_G = 0; // unsigned int
-volatile unsigned int tick_codeuse_pos_D = 0;
-unsigned int tick_codeuse_G = 0;     // Compteur de tick de la codeuse du moteur Gauche
-unsigned int tick_codeuse_D = 0;     // Compteur de tick de la codeuse du moteur Droit
+
+volatile unsigned long int tick_codeuse_pos_G = 0; // unsigned int
+volatile unsigned long int tick_codeuse_pos_D = 0;
+unsigned long int tick_codeuse_G = 0;     // Compteur de tick de la codeuse du moteur Gauche
+unsigned long int tick_codeuse_D = 0;     // Compteur de tick de la codeuse du moteur Droit
 int vitMoteur_G = 0;                 // Commande du moteur Gauche
 int vitMoteur_D = 0;                 // Commande du moteur Droite
 
-const int frequence_echantillonnage = 100; // FrÃ©quence d'exÃ©cution de l'asservissement
+const int frequence_echantillonnage = 50;//100; // FrÃ©quence d'exÃ©cution de l'asservissement
 const int rapport_reducteur = 30;          // Rapport nombre de tours de l'arbre moteur et de la roue
 const int tick_par_tour_codeuse = 32;  //64 tick sur deux capteurs hall, ici un seul capteur
 
 //definition des entrÃ©es Moteur Gauche
-const int motG_IN1 = 8;    // Commande de sens moteur, Input 1
-const int motG_IN2 = 9;    // Commande de sens moteur, Input 2
+const int motG_IN1 = 8;   // Commande de sens moteur, Input 1
+const int motG_IN2 = 4;//9   // Commande de sens moteur, Input 2
 const int pinPowerG  = 7;    // Commande de vitesse moteur, Output Enabled1
 volatile bool motorStopped_G = true;  // indique si un moteur a été stoppé pour ne plus l'asservir
 
 //definition des entrÃ©es Moteur Droite
 const int motD_IN3 = 12;    // Commande de sens moteur, Input 1
 const int motD_IN4 = 11;    // Commande de sens moteur, Input 2
-const int pinPowerD  = 13;    // Commande de vitesse moteur, Output Enabled1
+const int pinPowerD  = 5;//13;    // Commande de vitesse moteur, Output Enabled1
 volatile bool motorStopped_D = true;
+
+volatile bool motorStoppedForever = false;
 
 //consigne en tour/s
 //const float consigne_moteur_G = 0;//2;  // Consigne nombre de tours de roue par seconde moteur Gauche
+float targetSpeed = 1.5; //1.5 // vitesse max visée pour la courbe d'accélération
 float consigne_moteur_G = 0;//const float consigne_moteur_D = 0;//2;  // Consigne nombre de tours de roue par seconde moteur Droit
 float consigne_moteur_D = 0;
 void (*directionFunction_L)(int);
@@ -53,12 +66,12 @@ float erreur_D_precedente = consigne_moteur_D; // (en tour/s)
 float somme_erreur_D = 0;
 
 //Definition des constantes du correcteur PID
-const float kpG = 300;// 200; //350; //1100; // Coefficient proportionnel (choisis par essais successifs)
-const float kiG = 0.6;//0.2; //5;   // Coefficient intÃ©grateur
+const float kpG = 150; //300;// 200; //350; //1100; // Coefficient proportionnel (choisis par essais successifs)
+const float kiG = 3;//0.6;//0.2; //5;   // Coefficient intÃ©grateur
 const float kdG = 0;//200;//50; //100; // Coefficient dÃ©rivateur
 
-const float kpD = 300;//270;//350; //1000; // Coefficient proportionnel (choisis par essais successifs)
-const float kiD = 0.9;
+const float kpD = 150; //300;//270;//350; //1000; // Coefficient proportionnel (choisis par essais successifs)
+const float kiD = 3;//0.9;
 const float kdD = 0;//200;
 
 void nothing(int) {}
@@ -107,7 +120,8 @@ void compteur_G() {
     if(tick_codeuse_pos_G >= consigneNbTick_G) {
         motorBreak_G();
         motorStopped_G = true;
-        if(motorStopped_D) timer.disable(timerID);
+        //if(motorStopped_D) timer.disable(timerID);
+        if(motorStopped_D) timer.stop();
         detachInterrupt(digitalPinToInterrupt(21));
         tick_codeuse_pos_G = 0;
     }
@@ -123,7 +137,8 @@ void compteur_D() {
     if(tick_codeuse_pos_D >= consigneNbTick_D) {
         motorBreak_D();
         motorStopped_D = true;
-        if(motorStopped_G) timer.disable(timerID);
+        //if(motorStopped_G) timer.disable(timerID);
+        if(motorStopped_G) timer.stop();
         detachInterrupt(digitalPinToInterrupt(20));
         tick_codeuse_D = 0;
     }
@@ -185,8 +200,18 @@ void asservissement(){
     Serial.print(!motorStopped_D);
     Serial.println();
      */
-    if (!motorStopped_G ) directionFunction_L(vitMoteur_G);
-    if (!motorStopped_D ) directionFunction_D(vitMoteur_D);
+
+    if(isTelsAble && detectObstacle()) {
+        isObstacle = true;
+    }else{
+        isObstacle = false;
+    }
+
+    if(!isObstacle && !motorStoppedForever) {
+        if (!motorStopped_G) directionFunction_L(vitMoteur_G);
+        if (!motorStopped_D) directionFunction_D(vitMoteur_D);
+    }
+
     /*// Affiche nbTick
     Serial.print(tick_codeuse_pos_G);
     Serial.print(" : ");
@@ -194,7 +219,7 @@ void asservissement(){
     Serial.println();
     //*/
 
-    /*// Affiche vitesse
+    //*// Affiche vitesse
     Serial.print(vit_roue_tour_sec_G);  // affiche Ã  gauche la vitesse et Ã  droite l'erreur_G
     Serial.print(" : ");
     Serial.print(vit_roue_tour_sec_D);  // affiche Ã  gauche la vitesse et Ã  droite l'erreur_D
@@ -214,6 +239,20 @@ int distanceToNbTicks(float distance){
     float r = 55;
     float perim = 2*pi*r;
     return (int) distance/(perim/960);
+}
+
+void forwardTest(){
+    directionFunction_L = motorForward_G;
+    directionFunction_D = motorForward_D;
+    directionFunction_L(130);
+    directionFunction_D(130);
+}
+
+void backwardTest(){
+    directionFunction_L = motorBackWard_G;
+    directionFunction_D = motorBackWard_D;
+    directionFunction_L(130);
+    directionFunction_D(130);
 }
 
 void move(float distance, String direction){
@@ -255,12 +294,12 @@ void move(float distance, String direction){
     tick_codeuse_pos_G = tick_codeuse_pos_D = 0;
 
     String subDirectionInfo = direction.substring(direction.length()-4);
-    Serial.println(subDirectionInfo);
+    float saveTargetSpeed = targetSpeed;
     if(subDirectionInfo.compareTo("Wall") == 0){
         Serial.println("activating wall detector");
         enableWallDetector();
+        targetSpeed = 0.8;
     }
-
     if (direction.compareTo("leftForward") == 0){
         motorStopped_G = false;
         motorStopped_D = true;
@@ -324,12 +363,17 @@ void move(float distance, String direction){
     }
 
     // Interruption sur tick de la codeuse du moteur Gauche  (interruption 0 = pin2 arduino)
-    attachInterrupt(digitalPinToInterrupt(21), compteur_G, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(21), compteur_G, CHANGE);//21
     // Interruption sur tick de la codeuse du moteur Droit  (interruption 1 = pin3 arduino)
-    attachInterrupt(digitalPinToInterrupt(20), compteur_D, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(20), compteur_D, CHANGE); //20
 
     // Interruption pour calcul du PID et asservissement appelee toutes les 10ms
-    timerID = timer.setInterval(1000/frequence_echantillonnage, asservissement);
+    /*timerID = timer.setInterval(1000 / frequence_echantillonnage, asservissement);
+    timer.restartTimer(timerID);*/
+    Timer5.initialize(1000000 / frequence_echantillonnage);
+    Timer5.attachInterrupt(asservissement);
+    //timer.attachInterrupt(asservissement, 1000 / frequence_echantillonnage);
+    //timer.restart();
 
     bool change = false;
     while(!motorStopped_G || !motorStopped_D) {
@@ -337,7 +381,8 @@ void move(float distance, String direction){
             if (isWall_L) {
                 motorBreak_G();
                 motorStopped_G = true;
-                if(motorStopped_D) timer.disable(timerID);
+                //if(motorStopped_D) timer.disable(timerID);
+                if(motorStopped_D) timer.stop();
                 detachInterrupt(digitalPinToInterrupt(21));
                 tick_codeuse_G = 0;
             }
@@ -345,38 +390,50 @@ void move(float distance, String direction){
                 Serial.println("roue droite");
                 motorBreak_D();
                 motorStopped_D = true;
-                if(motorStopped_G) timer.disable(timerID);
+                //if(motorStopped_G) timer.disable(timerID);
+                if(motorStopped_G) timer.stop();
                 detachInterrupt(digitalPinToInterrupt(20));
                 tick_codeuse_D = 0;
             }
         }
-        if (isObstacle_AV) {
+        if (isObstacle) { // if(isObstacle)
             motorBreak_G();
             motorBreak_D();
-            delay(1000);
+            delay(20);
             change = false; // réactive rampe aceleration
             consigne_moteur_G = consigne_moteur_D = 0;
-            if(!detectObstacle_AV()) isObstacle_AV = false;
+            if(!detectObstacle()) isObstacle = false;
         } else {
-            timer.run();  //on fait tourner l'horloge
+            //timer.run();  //on fait tourner l'horloge
+            //timer.start();
             delay(10);
             //*
             if (!change) {
-                if (consigne_moteur_G < 1) consigne_moteur_G += 0.050;  // valeur bonne pour drapeau : 1.4
-                if (consigne_moteur_D < 1) consigne_moteur_D += 0.050;  // valeur bonne pour drapeau : 1.35
+                if (consigne_moteur_G < targetSpeed) consigne_moteur_G += 0.050;  // valeur bonne pour drapeau : 1.4
+                if (consigne_moteur_D < targetSpeed) consigne_moteur_D += 0.050;  // valeur bonne pour drapeau : 1.35
             }
-            if (consigne_moteur_G >= 1) change = true;
+            if (consigne_moteur_G >= targetSpeed) change = true;
             //*/
             //*
             if (change) {
-                if (tick_codeuse_pos_G >= consigneNbTick_G - 400 && consigne_moteur_G > 0.8) consigne_moteur_G -= 0.05;
-                if (tick_codeuse_pos_D >= consigneNbTick_D - 400 && consigne_moteur_D > 0.8) consigne_moteur_D -= 0.05;
+                if (tick_codeuse_pos_G >= consigneNbTick_G - 400 && consigne_moteur_G > 0.8)
+                    consigne_moteur_G -= 0.05;
+                if (tick_codeuse_pos_D >= consigneNbTick_D - 400 && consigne_moteur_D > 0.8)
+                    consigne_moteur_D -= 0.05;
             }
             //*/
         }
+
+        if (millis() - debutRun >= 96000) { // 96000
+            Timer5.detachInterrupt();
+            deployerPavillon();
+            Timer5.attachInterrupt(asservissement);
+        }
     }
+    Timer5.detachInterrupt();
     if(subDirectionInfo.compareTo("Wall") == 0){
         disableWallDetector();
+        targetSpeed = saveTargetSpeed;
     }
 }
 
